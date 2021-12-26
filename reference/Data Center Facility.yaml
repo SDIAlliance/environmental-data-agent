@@ -1,0 +1,219 @@
+openapi: 3.1.0
+info:
+  title: Data Center Facility
+  version: 1.0.0
+  license:
+    name: GNU GPLv3
+    url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+  contact:
+    name: SDIA Team
+    url: 'https://sdialliance.org'
+    email: team@sdialliance.org
+  termsOfService: 'https://sdialliance.org/statutes'
+  summary: Register a new data center facility and receive metric endpoints..
+  description: |-
+    Endpoint to register a new data center facility to report environmnental impact metrics.
+    This is the base entity for the calculation of footprints for physical servers, virtual machines, cluster and server-side software applications.
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  '/data-center-facilities/{dataCenterFacilityID}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: dataCenterFacilityID
+        in: path
+        required: true
+    get:
+      summary: Get Data Center Facility by ID
+      tags: []
+      responses:
+        '200':
+          description: Data Center Facility found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataCenterFacility'
+              examples: {}
+        '404':
+          description: Data Center facility not found
+      operationId: get-data-center-facility-by-id
+      description: Retrieve the information of a data center facility.
+    patch:
+      summary: Update User Information
+      operationId: patch-data-center-facility-byid
+      responses:
+        '202':
+          description: Data Center Facility updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataCenterFacility'
+              examples: {}
+        '404':
+          description: Data Center facility not found.
+        '406':
+          $ref: '#/components/responses/InvalidFacilityResponse'
+      description: Update the data center facility
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataCenterFacility'
+            examples: {}
+        description: Patch data center facility properties to update.
+    delete:
+      summary: ''
+      operationId: delete-data-center-facilities-dataCenterFacilityID
+      responses:
+        '202':
+          description: Data Center facility has been scheduled for removal. Removing all the recorded metrics and data may take up to 24 hours.
+        '404':
+          description: Not data center facility found with this ID
+      description: Remove a data center facility and its associated data
+  /data-center-facilities:
+    post:
+      summary: Create a new data center facility
+      operationId: create-data-center-facility
+      responses:
+        '200':
+          description: Data Center Facility created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataCenterFacility'
+              examples: {}
+        '406':
+          $ref: '#/components/responses/InvalidFacilityResponse'
+        '409':
+          description: This facility already exists based on the coordinates provided.
+      description: Register a new data center facility.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataCenterFacility'
+            examples:
+              Create confidential facility:
+                value:
+                  geo_lat: 38.8951
+                  geo_lon: -77.0364
+                  alias: Example Facility
+                  confidential: true
+                  total_electrical_capacity: 10000
+    parameters: []
+components:
+  schemas:
+    DataCenterFacility:
+      title: Data Center Facility
+      type: object
+      description: 'A data center, server room or any other building containing IT infrastructure.'
+      examples: []
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the given user.
+          format: uuid
+          readOnly: true
+        geo_lat:
+          type: number
+          description: Latitude coordinate of the facility (used to determine the power grid location)
+          minimum: -180
+          maximum: 180
+          format: float
+        geo_lon:
+          type: number
+          description: Longitude coordinate of the facility (used to determine the power grid location)
+          format: float
+          minimum: -180
+          maximum: 180
+        alias:
+          type: string
+          description: Alias name of the facility
+        energy_input_stream_endpoint:
+          type: string
+          format: uri
+          readOnly: true
+        energy_input_stream_topic:
+          type: string
+          readOnly: true
+        energy_input_rest_endpoint:
+          type: string
+          format: uri
+          readOnly: true
+        energy_output_stream_endpoint:
+          type: string
+          format: uri
+          readOnly: true
+        energy_output_stream_topic:
+          type: string
+          readOnly: true
+        energy_output_rest_endpoint:
+          type: string
+          format: uri
+          readOnly: true
+        equipment_inventory_rest_endpoint:
+          type: string
+          format: uri
+          readOnly: true
+        confidential:
+          type: boolean
+          default: false
+        consent_to_open_data:
+          type: boolean
+          default: false
+        total_electrical_capacity:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - geo_lat
+        - geo_lon
+  responses:
+    InvalidFacilityResponse:
+      description: 'Not Acceptable, either data is missing or invalid. Check the error messages contained in the response.'
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              errors:
+                type: array
+                uniqueItems: true
+                minItems: 1
+                items:
+                  required:
+                    - field_name
+                    - message
+                  properties:
+                    field_name:
+                      type: string
+                      minLength: 1
+                    message:
+                      type: string
+                      minLength: 1
+            required:
+              - errors
+            x-examples:
+              example-1:
+                errors:
+                  - field_name: geo_lat
+                    message: Invalid coordinates
+                  - field_name: geo_lon
+                    message: Invalid coordinates
+          examples:
+            Invalid coordinates:
+              value:
+                errors:
+                  - field_name: geo_lat
+                    message: Invalid coordinates
+                  - field_name: geo_lon
+                    message: Invalid coordinates
