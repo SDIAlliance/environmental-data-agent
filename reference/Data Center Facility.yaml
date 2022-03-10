@@ -27,7 +27,8 @@ paths:
         required: true
     get:
       summary: Get Data Center Facility by ID
-      tags: []
+      tags:
+        - datacenter
       responses:
         '200':
           description: Data Center Facility found
@@ -41,7 +42,9 @@ paths:
       operationId: get-data-center-facility-by-id
       description: Retrieve the information of a data center facility.
     patch:
-      summary: Update User Information
+      tags:
+        - datacenter
+      summary: Update data center facility
       operationId: patch-data-center-facility-byid
       responses:
         '202':
@@ -64,7 +67,9 @@ paths:
             examples: {}
         description: Patch data center facility properties to update.
     delete:
-      summary: ''
+      tags:
+        - datacenter
+      summary: Remove data center facility
       operationId: delete-data-center-facilities-dataCenterFacilityID
       responses:
         '202':
@@ -74,6 +79,8 @@ paths:
       description: Remove a data center facility and its associated data
   /data-center-facilities:
     post:
+      tags:
+        - datacenter
       summary: Create a new data center facility
       operationId: create-data-center-facility
       responses:
@@ -97,12 +104,26 @@ paths:
             examples:
               Create confidential facility:
                 value:
+                  id: 7b41470a-d52e-411d-967e-6bfbea82f726
                   geo_lat: 38.8951
                   geo_lon: -77.0364
                   alias: Example Facility
                   confidential: true
                   total_electrical_capacity: 10000
     parameters: []
+    get:
+      description: Lists all registered data center facilities that are not marked as confidential.
+      tags:
+        - datacenter
+      summary: List all data center facilities
+      operationId: get-data-center-facilities
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataCenterFacility'
 components:
   schemas:
     DataCenterFacility:
@@ -160,18 +181,22 @@ components:
         confidential:
           type: boolean
           default: false
+          writeOnly: true
         consent_to_open_data:
           type: boolean
           default: false
+          writeOnly: true
         total_electrical_capacity:
           type: integer
           minimum: 0
         created_at:
           type: string
           format: date-time
+          readOnly: true
         updated_at:
           type: string
           format: date-time
+          readOnly: true
       required:
         - id
         - geo_lat
@@ -217,3 +242,5 @@ components:
                     message: Invalid coordinates
                   - field_name: geo_lon
                     message: Invalid coordinates
+tags:
+  - name: datacenter
