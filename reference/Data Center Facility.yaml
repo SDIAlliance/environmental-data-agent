@@ -104,6 +104,7 @@ paths:
             examples:
               Create confidential facility:
                 value:
+                  total_power_consumption_at_max_load: 1000340
                   id: 7b41470a-d52e-411d-967e-6bfbea82f726
                   geo_lat: 38.8951
                   geo_lon: -77.0364
@@ -149,9 +150,35 @@ components:
           format: float
           minimum: -180
           maximum: 180
+        address:
+          type: string
+          description: Address of the facility (either this or the latitude/longitude have to be given)
         alias:
           type: string
           description: Alias name of the facility
+        owner:
+          type: string
+          description: Legal entity owning the data center
+        website:
+          type: string
+          description: URL to the website of the data center for more information
+          format: uri
+        contact_email:
+          type: string
+          description: Email address to contact a representative of the data center facility
+          format: email
+        total_electrical_capacity:
+          type: integer
+          minimum: 0
+          description: Total available electrical capacity for IT in kW
+        total_size:
+          type: integer
+          minimum: 0
+          description: Total available IT space in sqm
+        total_power_consumption_at_max_load:
+          type: integer
+          minimum: 0
+          description: The total annual power consumption at maximum occupation/load in kWh
         energy_input_stream_endpoint:
           type: string
           format: uri
@@ -186,9 +213,6 @@ components:
           type: boolean
           default: false
           writeOnly: true
-        total_electrical_capacity:
-          type: integer
-          minimum: 0
         created_at:
           type: string
           format: date-time
@@ -197,10 +221,58 @@ components:
           type: string
           format: date-time
           readOnly: true
+        annual_on_site_production:
+          type: array
+          items:
+            type: object
+            properties:
+              amount:
+                type: integer
+                description: Annual production of the on-site generation asset in kWh
+                minimum: 0
+              type:
+                type: string
+                enum:
+                  - solar_pv
+                  - wind
+                  - hydro
+                  - hydrogen_fuel_cell
+                  - natural_gas_fuel_cell
+                  - other_fossil_based_generation
+                description: All on-site generation sources must be physically connected to the data center to be counted.
+        annual_on_site_production_coverage:
+          type: integer
+          description: Percentage of annual power consumption covered by on-site generation (irrespective of green or not)
+          readOnly: true
+        annual_certificate_coverage:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - goo
+                  - energy_tag
+                description: Type of certificate (see options)
+              coverage:
+                type: integer
+                minimum: 0
+                example: 3
+                default: 0
+                description: Percentage of annual power consumption covered by this certificate type
+        nearby_res_generation:
+          type: integer
+          description: Distance to the next renewable power generation system in kilometers
+        nearby_res_annual_production:
+          type: integer
+          description: Annualized total production of electricity of the nearby renewable energy generation system in kWh
       required:
         - id
         - geo_lat
         - geo_lon
+        - total_electrical_capacity
+        - total_power_consumption_at_max_load
   responses:
     InvalidFacilityResponse:
       description: 'Not Acceptable, either data is missing or invalid. Check the error messages contained in the response.'
